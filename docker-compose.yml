@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+
+  # ── BACKEND ──────────────────────────────────────────────────
+  backend:
+    build: ./student-api          # build from student-api/Dockerfile
+    container_name: student-api
+    ports:
+      - "8000:8000"               # laptop:8000 -> container:8000
+    volumes:
+      - ./student-api/kuppam.db:/app/kuppam.db
+      # Mount the .db file from the laptop into the container.
+      # Data persists when the container restarts.
+    environment:
+      - SECRET_KEY=${SECRET_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      # Values come from the .env file at the project root.
+      # Docker Compose reads .env automatically.
+    restart: unless-stopped       # restart if the container crashes
+
+  # ── FRONTEND ─────────────────────────────────────────────────
+  frontend:
+    build:
+      context: ./student-app      # build from student-app/Dockerfile
+      args:
+        VITE_API_URL: http://localhost:8000
+        # VITE_API_URL is baked into the JS bundle at build time.
+        # localhost:8000 is correct — the browser (on your laptop) makes API calls.
+        # The backend port 8000 is mapped to localhost:8000 on the host.
+    container_name: student-app
+    ports:
+      - "5173:80"                 # laptop:5173 -> container:80 (nginx)
+    depends_on:
+      - backend
+      # Start backend container first, then frontend.
