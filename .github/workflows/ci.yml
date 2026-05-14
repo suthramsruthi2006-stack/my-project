@@ -27,6 +27,7 @@ jobs:
           cd student-api
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install pytest
 
       - name: Run tests
         env:
